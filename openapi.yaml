@@ -1,0 +1,207 @@
+openapi: 3.0.0
+info:
+  title: AI Study Companion API
+  version: 1.0.0
+  description: API specification for the AI Study Companion frontend application
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+paths:
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate a user with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "john_doe"
+                password:
+                  type: string
+                  example: "password123"
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+  /auth/signup:
+    post:
+      summary: User signup
+      description: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "john_doe"
+                password:
+                  type: string
+                  example: "password123"
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+              required:
+                - username
+                - password
+                - email
+      responses:
+        '201':
+          description: Successful signup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input or user already exists
+  /ai/ask:
+    post:
+      summary: Ask AI a question
+      description: Submit a question to the AI and receive a response
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: string
+                  example: "What is the capital of France?"
+              required:
+                - question
+      responses:
+        '200':
+          description: Successful response from AI
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: "The capital of France is Paris."
+        '401':
+          description: Unauthorized
+  /leaderboard:
+    get:
+      summary: Get leaderboard
+      description: Retrieve the current leaderboard rankings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful retrieval of leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaderboardEntry'
+        '401':
+          description: Unauthorized
+  /user/profile:
+    get:
+      summary: Get user profile
+      description: Retrieve the current user's profile information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful retrieval of user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+    put:
+      summary: Update user profile
+      description: Update the current user's profile information
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Successful update of user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "john_doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        score:
+          type: integer
+          example: 1500
+      required:
+        - id
+        - username
+        - email
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+          example: 1
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - rank
+        - user
